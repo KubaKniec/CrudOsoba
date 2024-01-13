@@ -28,6 +28,7 @@ public class Person {
 //    private Gender gender;
 //    private CardType cardType;
 //    private Long cardNumber;
+    private boolean isLoggedIn = false;
 }
 
 

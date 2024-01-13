@@ -5,6 +5,7 @@ import com.example.crudosoba.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,6 +17,11 @@ public class PersonController {
     @PostMapping("/save")
     public ResponseEntity<Person> addPerson(@RequestBody Person person) {
         return ResponseEntity.ok(personService.save(person));
+    }
+
+    @PutMapping("/login")
+    public ResponseEntity<Person> login(@RequestBody Person person) throws Exception {
+        return ResponseEntity.ok(personService.login(person));
     }
 
 }
