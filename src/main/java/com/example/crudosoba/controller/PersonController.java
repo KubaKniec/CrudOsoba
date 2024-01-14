@@ -4,10 +4,7 @@ import com.example.crudosoba.model.Person;
 import com.example.crudosoba.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -22,6 +19,13 @@ public class PersonController {
     @PutMapping("/login")
     public ResponseEntity<Person> login(@RequestBody Person person) throws Exception {
         return ResponseEntity.ok(personService.login(person));
+    }
+
+    /// localhost:8081/delete/?id=0
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deletePersonById(@RequestParam("id") Integer id) {
+        personService.deletePersonById(id);
+        return ResponseEntity.ok("ok");
     }
 
 }

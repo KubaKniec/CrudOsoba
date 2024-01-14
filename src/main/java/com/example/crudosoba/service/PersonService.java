@@ -22,6 +22,10 @@ public class PersonService {
         return person.orElse(null);
     }
 
+    public void deletePersonById(Integer id) {
+        personRepository.deleteById(id);
+    }
+
 
     public Person login(Person person) throws Exception {
         Optional<Person> personFromDB = personRepository.getPersonByEmail(person.getEmail());
