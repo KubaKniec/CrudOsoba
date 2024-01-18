@@ -18,21 +18,10 @@ public class PersonController {
         return ResponseEntity.ok(personService.save(person));
     }
 
-    // OLD VERSION
-//    @PutMapping("/login")
-//    public ResponseEntity<Person> login(@RequestBody Person person) throws Exception {
-//        return ResponseEntity.ok(personService.login(person));
-//    }
     @GetMapping("/login")
     public ResponseEntity<Person> login(@RequestParam String email, @RequestParam String password) {
-        Person person = personService.getPersonByEmail(email);
-        if (person.getPassword().equals(password)) {
-            loggedInUserId = person.getId();
-            return ResponseEntity.ok(person);
-        }
-        return ResponseEntity.ok(null);
+     return ResponseEntity.ok(personService.login(email, password));
     }
-
 
     @PutMapping("/logout")
     public ResponseEntity<String> logout() {

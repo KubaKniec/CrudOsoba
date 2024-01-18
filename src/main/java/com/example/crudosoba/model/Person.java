@@ -25,10 +25,9 @@ public class Person {
     private String surname;
     private String email;
     private String password;
-//    private Gender gender;
-//    private CardType cardType;
-//    private Long cardNumber;
-//    private boolean isLoggedIn = false;
+    private Gender gender;
+    private CardType cardType;
+    private String cardNumber; //String, aby nr karty mógł zaczynać się od "0"
 }
 
 

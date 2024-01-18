@@ -12,17 +12,33 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PersonService {
     private final PersonRepository personRepository;
-    @Getter
-    private Integer loggedInUserId;
 
     public Person save(Person person) {
+        //TODO WALIDACJA HASŁA I EMAIL
+//        final String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\\\/-]).{6,}$";
+//        final String emailRegex = "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/";
+//        if (person.getPassword().matches(passwordRegex) && person.getEmail().matches(emailRegex)) {
+//            return personRepository.save(person);
+//        } else {
+//            throw new IllegalArgumentException("Invalid password or email");
+//        }
+        if (personRepository.getPersonByEmail(person.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Person already exist");
+        }
         return personRepository.save(person);
     }
+//    public Person save(Person person) {
+//        return personRepository.save(person);
+//    }
+
 
     public Person getPersonByEmail(String email) {
-//        Optional<Person> person = personRepository.getPersonByEmail(email);
-        return personRepository.getPersonByEmail(email);
-//        return person.orElse(null);
+        Optional<Person> person = personRepository.getPersonByEmail(email);
+        if (person.isPresent()) {
+            return person.get();
+        } else
+            throw new IllegalArgumentException("No such person with provided email");
+
     }
 
     public Integer deletePersonById(Integer id) {
@@ -33,15 +49,9 @@ public class PersonService {
     public Person login(String email, String password) {
         Person person = getPersonByEmail(email);
         if (person.getPassword().equals(password)) {
-            loggedInUserId = person.getId();
             return person;
         }
-        return null;
-    }
-
-    public String logout() {
-        loggedInUserId = null;
-        return "Logged out successfully";
+        throw new IllegalArgumentException("Invalid email or password");
     }
 
     public Person getPersonById(Integer id) {
@@ -49,7 +59,7 @@ public class PersonService {
         if (person.isPresent()){
             return person.get();
         }
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("No such person with provided id");
 
     }
 
@@ -67,12 +77,17 @@ public class PersonService {
             if (!person.getPassword().isEmpty()) {
                 personToUpdate.setPassword(person.getPassword());
             }
-
+            if (!person.getGender().equals(personToUpdate.getGender())) {
+                personToUpdate.setGender(person.getGender());
+            }
+            if (!person.getCardType().equals(personToUpdate.getCardType())) {
+                personToUpdate.setCardType(person.getCardType());
+            }
+            if (!person.getCardNumber().isEmpty()) {
+                personToUpdate.setCardNumber(person.getCardNumber());
+            }
             return personRepository.save(personToUpdate);
 
     }
 
-    private boolean isUserLoggedIn(Integer userId) {
-        return userId.equals(loggedInUserId);
-    }
 }
