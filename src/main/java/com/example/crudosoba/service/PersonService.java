@@ -4,12 +4,8 @@ import com.example.crudosoba.model.Person;
 import com.example.crudosoba.repository.PersonRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -19,7 +15,7 @@ public class PersonService {
     @Getter
     private Integer loggedInUserId;
 
-    public Person save(Person person){
+    public Person save(Person person) {
         return personRepository.save(person);
     }
 
@@ -30,13 +26,13 @@ public class PersonService {
     }
 
     public Integer deletePersonById(Integer id) {
-            personRepository.deleteById(id);
-            return id;
+        personRepository.deleteById(id);
+        return id;
     }
 
     public Person login(String email, String password) {
         Person person = getPersonByEmail(email);
-        if (person.getPassword().equals(password)){
+        if (person.getPassword().equals(password)) {
             loggedInUserId = person.getId();
             return person;
         }
@@ -49,11 +45,31 @@ public class PersonService {
     }
 
     public Person getPersonById(Integer id) {
-        if (isUserLoggedIn(id)){
-            return personRepository.findById(id).orElse(null);
-        } else {
-            return null; //TODO czy tutaj dodac cos w stylu HttpStatus.UNAUTHORIZED
+        Optional<Person> person = personRepository.findById(id);
+        if (person.isPresent()){
+            return person.get();
         }
+        throw new IllegalArgumentException();
+
+    }
+
+    public Person updatePersonById(Integer id, Person person) {
+        Person personToUpdate = getPersonById(id);
+            if (!person.getName().isEmpty()) {
+                personToUpdate.setName(person.getName());
+            }
+            if (!person.getSurname().isEmpty()) {
+                personToUpdate.setSurname(person.getSurname());
+            }
+            if (!person.getEmail().isEmpty()) {
+                personToUpdate.setEmail(person.getEmail());
+            }
+            if (!person.getPassword().isEmpty()) {
+                personToUpdate.setPassword(person.getPassword());
+            }
+
+            return personRepository.save(personToUpdate);
+
     }
 
     private boolean isUserLoggedIn(Integer userId) {

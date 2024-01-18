@@ -63,6 +63,13 @@ public class PersonController {
         return ResponseEntity.ok(id);
     }
 
+    // /localhost:8081/update/0
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Person> updatePersonById(@PathVariable("id") Integer id, @RequestBody Person person) {
+        return ResponseEntity.ok(personService.updatePersonById(id, person));
+    }
+
+
 
 
 }
