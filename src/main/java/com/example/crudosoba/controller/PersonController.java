@@ -46,7 +46,7 @@ public class PersonController {
     }
     //localhost:8081/isAdmin?id=0
     @GetMapping("/isAdmin")
-    public ResponseEntity<Person> checkIsAdmin(@RequestParam("id") Integer id) {
+    public ResponseEntity<Boolean> checkIsAdmin(@RequestParam("id") Integer id) {
         return ResponseEntity.ok(personService.checkIsAdmin(id));
 
     }

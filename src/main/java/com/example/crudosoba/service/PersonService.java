@@ -36,11 +36,11 @@ public class PersonService {
 //        return personRepository.save(person);
 //    }
 
-    public Person checkIsAdmin(Integer id) {
+    public Boolean checkIsAdmin(Integer id) {
         Optional<Person> person = personRepository.findById(id);
         if (person.isPresent()){
-            if (person.get().isAdmin()) {
-                return person.get();
+            if (person.get().getIsAdmin()) {
+                return true;
             }
             throw new IllegalArgumentException("Person is not an ADMIN");
         }

@@ -37,7 +37,7 @@ public class Person {
     @Pattern(regexp = "^\\d{16}$")
     private String cardNumber; //String, aby nr karty mógł zaczynać się od "0"
 
-    private boolean isAdmin = false;
+    private Boolean isAdmin;
 }
 
 
