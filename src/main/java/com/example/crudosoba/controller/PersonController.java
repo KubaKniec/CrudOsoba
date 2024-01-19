@@ -44,6 +44,12 @@ public class PersonController {
     public ResponseEntity<Person> getPersonByEmail(@PathVariable("email") String email) {
         return ResponseEntity.ok(personService.getPersonByEmail(email));
     }
+    //localhost:8081/isAdmin?id=0
+    @GetMapping("/isAdmin")
+    public ResponseEntity<Person> checkIsAdmin(@RequestParam("id") Integer id) {
+        return ResponseEntity.ok(personService.checkIsAdmin(id));
+
+    }
 
     // /localhost:8081/delete?id=0
     @DeleteMapping("/delete")

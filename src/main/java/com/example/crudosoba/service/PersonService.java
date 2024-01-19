@@ -2,35 +2,50 @@ package com.example.crudosoba.service;
 
 import com.example.crudosoba.model.Person;
 import com.example.crudosoba.repository.PersonRepository;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Validated
 public class PersonService {
     private final PersonRepository personRepository;
 
-    public Person save(Person person) {
+    public Person save(@Valid Person person) { //dokończyć później nie przechodzi regex z password
+        if (personRepository.getPersonByEmail(person.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Person already exist");
+        }
+        return personRepository.save(person);
+
         //TODO WALIDACJA HASŁA I EMAIL
 //        final String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\\\/-]).{6,}$";
 //        final String emailRegex = "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/";
+//        //string cardNumberRegex
 //        if (person.getPassword().matches(passwordRegex) && person.getEmail().matches(emailRegex)) {
 //            return personRepository.save(person);
 //        } else {
 //            throw new IllegalArgumentException("Invalid password or email");
 //        }
-        if (personRepository.getPersonByEmail(person.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Person already exist");
-        }
-        return personRepository.save(person);
     }
 //    public Person save(Person person) {
 //        return personRepository.save(person);
 //    }
 
+    public Person checkIsAdmin(Integer id) {
+        Optional<Person> person = personRepository.findById(id);
+        if (person.isPresent()){
+            if (person.get().isAdmin()) {
+                return person.get();
+            }
+            throw new IllegalArgumentException("Person is not an ADMIN");
+        }
+        throw new IllegalArgumentException("No such person with provided id");
+    }
 
     public Person getPersonByEmail(String email) {
         Optional<Person> person = personRepository.getPersonByEmail(email);
