@@ -4,20 +4,21 @@ import com.example.crudosoba.model.Person;
 import com.example.crudosoba.model.enums.CardType;
 import com.example.crudosoba.model.enums.Gender;
 import com.example.crudosoba.repository.PersonRepository;
+import com.opencsv.CSVReader;
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +48,7 @@ public class PersonService {
 
     public Boolean checkIsAdmin(Integer id) {
         Optional<Person> person = personRepository.findById(id);
-        if (person.isPresent()){
+        if (person.isPresent()) {
             if (person.get().getIsAdmin()) {
                 return true;
             }
@@ -80,7 +81,7 @@ public class PersonService {
 
     public Person getPersonById(Integer id) {
         Optional<Person> person = personRepository.findById(id);
-        if (person.isPresent()){
+        if (person.isPresent()) {
             return person.get();
         }
         throw new IllegalArgumentException("No such person with provided id");
@@ -89,34 +90,34 @@ public class PersonService {
 
     public Person updatePersonById(Integer id, Person person) {
         Person personToUpdate = getPersonById(id);
-            if (!person.getName().isEmpty()) {
-                personToUpdate.setName(person.getName());
-            }
-            if (!person.getSurname().isEmpty()) {
-                personToUpdate.setSurname(person.getSurname());
-            }
-            if (!person.getEmail().isEmpty()) {
-                personToUpdate.setEmail(person.getEmail());
-            }
-            if (!person.getPassword().isEmpty()) {
-                personToUpdate.setPassword(person.getPassword());
-            }
-            if (!person.getGender().equals(personToUpdate.getGender())) {
-                personToUpdate.setGender(person.getGender());
-            }
-            if (!person.getCardType().equals(personToUpdate.getCardType())) {
-                personToUpdate.setCardType(person.getCardType());
-            }
-            if (!person.getCardNumber().isEmpty()) {
-                personToUpdate.setCardNumber(person.getCardNumber());
-            }
-            return personRepository.save(personToUpdate);
+        if (!person.getName().isEmpty()) {
+            personToUpdate.setName(person.getName());
+        }
+        if (!person.getSurname().isEmpty()) {
+            personToUpdate.setSurname(person.getSurname());
+        }
+        if (!person.getEmail().isEmpty()) {
+            personToUpdate.setEmail(person.getEmail());
+        }
+        if (!person.getPassword().isEmpty()) {
+            personToUpdate.setPassword(person.getPassword());
+        }
+        if (!person.getGender().equals(personToUpdate.getGender())) {
+            personToUpdate.setGender(person.getGender());
+        }
+        if (!person.getCardType().equals(personToUpdate.getCardType())) {
+            personToUpdate.setCardType(person.getCardType());
+        }
+        if (!person.getCardNumber().isEmpty()) {
+            personToUpdate.setCardNumber(person.getCardNumber());
+        }
+        return personRepository.save(personToUpdate);
 
     }
 
     public Person grandAdminById(Integer id) {
         Optional<Person> person = personRepository.findById(id);
-        if (person.isPresent()){
+        if (person.isPresent()) {
             person.get().setIsAdmin(true);
             return personRepository.save(person.get());
         } else {
@@ -127,7 +128,7 @@ public class PersonService {
 
     public Person revokeAdminById(Integer id) {
         Optional<Person> person = personRepository.findById(id);
-        if (person.isPresent()){
+        if (person.isPresent()) {
             person.get().setIsAdmin(false);
             return personRepository.save(person.get());
         } else {
@@ -135,24 +136,39 @@ public class PersonService {
         }
     }
 
-    @Transactional //TODO Naprawić to: https://www.geeksforgeeks.org/mapping-csv-to-javabeans-using-opencsv/
+    @Transactional //czasami działa za 2 próbą jeżeli wysyłam request z fronta. Nie wiem czemu
     public void loadDataFromCSV(String pathToCsv) throws IOException {
-        try (Reader reader = new FileReader(pathToCsv)) {
-            CSVParser csvParser = CSVFormat.DEFAULT.withHeader().parse(reader);
-            for (CSVRecord record : csvParser) {
+        String line;
+        String csvSplitBy = ",";
+        pathToCsv = "C:/" + pathToCsv;
+        List<Person> persons = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(pathToCsv))) {
+            br.readLine();
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(csvSplitBy);
+                String name = data[0];
+                String surname = data[1];
+                String email = data[2];
+                String password = data[3];
+                Gender gender = Gender.valueOf(data[4]);
+                CardType cardType = CardType.valueOf(data[5]);
+                String cardNumber = data[6];
+                Boolean isAdmin = Boolean.parseBoolean(data[7]);
                 Person person = new Person();
-                person.setName(record.get("name"));
-                person.setSurname(record.get("surname"));
-                person.setEmail(record.get("email"));
-                person.setPassword(record.get("password"));
-                person.setGender(Gender.valueOf(record.get("gender")));
-                person.setCardType(CardType.valueOf(record.get("cardType")));
-                person.setCardNumber(record.get("cardNumber"));
-                person.setIsAdmin(Boolean.parseBoolean(record.get("isAdmin")));
-                personRepository.save(person);
+
+                person.setName(name);
+                person.setSurname(surname);
+                person.setEmail(email);
+                person.setPassword(password);
+                person.setGender(gender);
+                person.setCardType(cardType);
+                person.setCardNumber(cardNumber);
+                person.setIsAdmin(isAdmin);
+                persons.add(person);
             }
+            personRepository.saveAll(persons);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
     }
-
 }

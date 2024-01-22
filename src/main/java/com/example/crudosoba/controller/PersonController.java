@@ -77,7 +77,7 @@ public class PersonController {
     }
 
     @PostMapping("/loadData")
-    public ResponseEntity<String> loadDataFromCSV(String pathToCSV) {
+    public ResponseEntity<String> loadDataFromCSV(@RequestParam("pathToCSV") String pathToCSV) {
         try {
             personService.loadDataFromCSV(pathToCSV);
             return ResponseEntity.ok("Data loaded");
