@@ -2,14 +2,9 @@ package com.example.crudosoba.model;
 
 import com.example.crudosoba.model.enums.CardType;
 import com.example.crudosoba.model.enums.Gender;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
-
 
 
 @Getter
@@ -31,7 +26,10 @@ public class Person {
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\\\/-]).{6,}$")
     private String password;
 
+    @Enumerated(EnumType.STRING)
     private Gender gender;
+
+    @Enumerated(EnumType.STRING)
     private CardType cardType;
 
     @Pattern(regexp = "^\\d{16}$")

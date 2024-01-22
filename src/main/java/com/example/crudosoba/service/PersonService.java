@@ -1,13 +1,22 @@
 package com.example.crudosoba.service;
 
 import com.example.crudosoba.model.Person;
+import com.example.crudosoba.model.enums.CardType;
+import com.example.crudosoba.model.enums.Gender;
 import com.example.crudosoba.repository.PersonRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Optional;
 
 @Service
@@ -16,7 +25,7 @@ import java.util.Optional;
 public class PersonService {
     private final PersonRepository personRepository;
 
-    public Person save(@Valid Person person) { //dokończyć później nie przechodzi regex z password
+    public Person save(@Valid Person person) { //TODO dokończyć później nie przechodzi regex z password
         if (personRepository.getPersonByEmail(person.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Person already exist");
         }
@@ -102,6 +111,47 @@ public class PersonService {
                 personToUpdate.setCardNumber(person.getCardNumber());
             }
             return personRepository.save(personToUpdate);
+
+    }
+
+    public Person grandAdminById(Integer id) {
+        Optional<Person> person = personRepository.findById(id);
+        if (person.isPresent()){
+            person.get().setIsAdmin(true);
+            return personRepository.save(person.get());
+        } else {
+            throw new IllegalArgumentException("No user with provided id");
+        }
+
+    }
+
+    public Person revokeAdminById(Integer id) {
+        Optional<Person> person = personRepository.findById(id);
+        if (person.isPresent()){
+            person.get().setIsAdmin(false);
+            return personRepository.save(person.get());
+        } else {
+            throw new IllegalArgumentException("No user with provided id");
+        }
+    }
+
+    @Transactional //TODO Naprawić to: https://www.geeksforgeeks.org/mapping-csv-to-javabeans-using-opencsv/
+    public void loadDataFromCSV(String pathToCsv) throws IOException {
+        try (Reader reader = new FileReader(pathToCsv)) {
+            CSVParser csvParser = CSVFormat.DEFAULT.withHeader().parse(reader);
+            for (CSVRecord record : csvParser) {
+                Person person = new Person();
+                person.setName(record.get("name"));
+                person.setSurname(record.get("surname"));
+                person.setEmail(record.get("email"));
+                person.setPassword(record.get("password"));
+                person.setGender(Gender.valueOf(record.get("gender")));
+                person.setCardType(CardType.valueOf(record.get("cardType")));
+                person.setCardNumber(record.get("cardNumber"));
+                person.setIsAdmin(Boolean.parseBoolean(record.get("isAdmin")));
+                personRepository.save(person);
+            }
+        }
 
     }
 

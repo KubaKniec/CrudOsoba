@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -64,6 +66,25 @@ public class PersonController {
         return ResponseEntity.ok(personService.updatePersonById(id, person));
     }
 
+    @PutMapping("/grantAdmin/{id}")
+    public ResponseEntity<Person> grandAdminById(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(personService.grandAdminById(id));
+    }
+
+    @PutMapping("/revokeAdmin/{id}")
+    public ResponseEntity<Person> revokeAdminById(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(personService.revokeAdminById(id));
+    }
+
+    @PostMapping("/loadData")
+    public ResponseEntity<String> loadDataFromCSV(String pathToCSV) {
+        try {
+            personService.loadDataFromCSV(pathToCSV);
+            return ResponseEntity.ok("Data loaded");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 
