@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 
 @RestController
@@ -15,9 +16,15 @@ import java.io.IOException;
 public class PersonController {
     private final PersonService personService;
     private Integer loggedInUserId;
+
     @PostMapping("/save")
     public ResponseEntity<Person> addPerson(@RequestBody Person person) {
         return ResponseEntity.ok(personService.save(person));
+    }
+
+    @GetMapping("/findAll")
+    public ResponseEntity<List<Person>> findAll () {
+        return ResponseEntity.ok(personService.findAll());
     }
 
     @GetMapping("/login")
@@ -84,6 +91,12 @@ public class PersonController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @GetMapping("/exportData")
+    public ResponseEntity<String> exportDataToCSV(@RequestParam("pathToCSV") String pathToCSV) {
+        personService.exportDataToCSV(pathToCSV);
+        return ResponseEntity.ok("Data exported");
     }
 
 

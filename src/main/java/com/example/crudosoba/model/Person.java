@@ -26,11 +26,11 @@ public class Person {
 //    @CsvBindByName(column = "surname")
     private String surname;
 
-    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
+//    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
 //    @CsvBindByName(column = "email")
     private String email;
 
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\\\/-]).{6,}$")
+//    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\\\/-]).{6,}$")
 //    @CsvBindByName(column = "password")
     private String password;
 
@@ -42,12 +42,25 @@ public class Person {
 //    @CsvBindByName(column = "cardType")
     private CardType cardType;
 
-    @Pattern(regexp = "^\\d{16}$")
+//    @Pattern(regexp = "^\\d{16}$")
 //    @CsvBindByName(column = "cardNumber")
     private String cardNumber; //String, aby nr karty mógł zaczynać się od "0"
 
 //    @CsvBindByName(column = "isAdmin")
     private Boolean isAdmin;
+
+    @Override
+    public String toString() {
+        return id + "," +
+                name + "," +
+                surname + "," +
+                email + "," +
+                password + "," +
+                gender + "," +
+                cardType + "," +
+                cardNumber + "," +
+                isAdmin;
+    }
 }
 
 

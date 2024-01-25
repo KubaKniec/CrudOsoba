@@ -4,21 +4,17 @@ import com.example.crudosoba.model.Person;
 import com.example.crudosoba.model.enums.CardType;
 import com.example.crudosoba.model.enums.Gender;
 import com.example.crudosoba.repository.PersonRepository;
-import com.opencsv.CSVReader;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -26,25 +22,36 @@ import java.util.*;
 public class PersonService {
     private final PersonRepository personRepository;
 
-    public Person save(@Valid Person person) { //TODO dokończyć później nie przechodzi regex z password
+    public List<Person> findAll() {
+        return personRepository.findAll();
+    }
+
+    private Boolean isInputValid(String input, String regex) {
+        if (input == null)
+            return false;
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(input);
+        return m.matches();
+
+    }
+
+    public Person save(Person person) { //TODO dokończyć później nie przechodzi regex z password
+        String passwordRegex = "^(?=.*[0-9])"
+                + "(?=.*[a-z])(?=.*[A-Z])"
+                + "(?=.*[@#$%^&+=])"
+                + "(?=\\S+$).{6,20}$";
         if (personRepository.getPersonByEmail(person.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Person already exist");
         }
-        return personRepository.save(person);
-
-        //TODO WALIDACJA HASŁA I EMAIL
-//        final String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\\\/-]).{6,}$";
-//        final String emailRegex = "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/";
-//        //string cardNumberRegex
-//        if (person.getPassword().matches(passwordRegex) && person.getEmail().matches(emailRegex)) {
-//            return personRepository.save(person);
-//        } else {
-//            throw new IllegalArgumentException("Invalid password or email");
-//        }
+        if (
+                isInputValid(person.getEmail(), "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$").equals(true) &&
+                isInputValid(person.getCardNumber(), "^\\d{16}$").equals(true) &&
+                isInputValid(person.getPassword(), passwordRegex).equals(true)) {
+            return personRepository.save(person);
+        } else {
+            throw new IllegalArgumentException("Email, Password or Card Number is invalid");
+        }
     }
-//    public Person save(Person person) {
-//        return personRepository.save(person);
-//    }
 
     public Boolean checkIsAdmin(Integer id) {
         Optional<Person> person = personRepository.findById(id);
@@ -89,27 +96,43 @@ public class PersonService {
     }
 
     public Person updatePersonById(Integer id, Person person) {
+        String passwordRegex = "^(?=.*[0-9])"
+                + "(?=.*[a-z])(?=.*[A-Z])"
+                + "(?=.*[@#$%^&+=])"
+                + "(?=\\S+$).{6,20}$";
         Person personToUpdate = getPersonById(id);
-        if (!person.getName().isEmpty()) {
+        if (person.getName() != null && !person.getName().isEmpty()) {
             personToUpdate.setName(person.getName());
         }
-        if (!person.getSurname().isEmpty()) {
+        if (person.getSurname() != null && !person.getSurname().isEmpty()) {
             personToUpdate.setSurname(person.getSurname());
         }
-        if (!person.getEmail().isEmpty()) {
-            personToUpdate.setEmail(person.getEmail());
+        if (person.getEmail() != null && !person.getEmail().isEmpty()) {
+            if (isInputValid(person.getEmail(), "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$").equals(true)) {
+                personToUpdate.setEmail(person.getEmail());
+            } else {
+                throw new IllegalArgumentException("Invalid Email");
+            }
         }
-        if (!person.getPassword().isEmpty()) {
-            personToUpdate.setPassword(person.getPassword());
+        if (person.getPassword() != null && !person.getPassword().isEmpty()) {
+            if (isInputValid(person.getPassword(), passwordRegex).equals(true)) {
+                personToUpdate.setPassword(person.getPassword());
+            } else {
+                throw new IllegalArgumentException("Invalid Password");
+            }
         }
-        if (!person.getGender().equals(personToUpdate.getGender())) {
+        if (person.getGender() != null && !person.getGender().equals(personToUpdate.getGender())) {
             personToUpdate.setGender(person.getGender());
         }
-        if (!person.getCardType().equals(personToUpdate.getCardType())) {
+        if (person.getCardType() != null && !person.getCardType().equals(personToUpdate.getCardType())) {
             personToUpdate.setCardType(person.getCardType());
         }
-        if (!person.getCardNumber().isEmpty()) {
-            personToUpdate.setCardNumber(person.getCardNumber());
+        if (person.getCardNumber() != null && !person.getCardNumber().isEmpty()) {
+            if (isInputValid(person.getCardNumber(), "^\\d{16}$").equals(true)) {
+                personToUpdate.setCardNumber(person.getCardNumber());
+            } else {
+                throw new IllegalArgumentException("Invalid Card Number");
+            }
         }
         return personRepository.save(personToUpdate);
 
@@ -171,4 +194,29 @@ public class PersonService {
             e.printStackTrace();
         }
     }
+
+    public void exportDataToCSV(String pathToCSV) {
+        File file = new File(pathToCSV);
+        File parentDir = file.getParentFile();
+
+        if (!parentDir.exists() && !parentDir.mkdirs()) {
+            throw new RuntimeException("Nie udało się utworzyć katalogu: " + parentDir);
+        }
+
+        List<String> data = new ArrayList<>();
+        List<Person> people = findAll();
+        for (Person person : people) {
+            data.add(person.toString());
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(pathToCSV, false))) {
+            for (String line : data) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 }
