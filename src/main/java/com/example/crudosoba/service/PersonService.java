@@ -6,12 +6,19 @@ import com.example.crudosoba.model.enums.Gender;
 import com.example.crudosoba.repository.PersonRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +28,7 @@ import java.util.regex.Pattern;
 @Validated
 public class PersonService {
     private final PersonRepository personRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public List<Person> findAll() {
         return personRepository.findAll();
@@ -45,8 +53,8 @@ public class PersonService {
         }
         if (
                 isInputValid(person.getEmail(), "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$").equals(true) &&
-                isInputValid(person.getCardNumber(), "^\\d{16}$").equals(true) &&
-                isInputValid(person.getPassword(), passwordRegex).equals(true)) {
+                        isInputValid(person.getCardNumber(), "^\\d{16}$").equals(true) &&
+                        isInputValid(person.getPassword(), passwordRegex).equals(true)) {
             return personRepository.save(person);
         } else {
             throw new IllegalArgumentException("Email, Password or Card Number is invalid");
@@ -159,8 +167,12 @@ public class PersonService {
         }
     }
 
-    @Transactional //czasami działa za 2 próbą jeżeli wysyłam request z fronta. Nie wiem czemu
-    public void loadDataFromCSV(String pathToCsv) throws IOException {
+    @Transactional
+    @Async
+    public void loadDataFromCSV(Integer id, String pathToCsv) throws IOException {
+        if (getPersonById(id).getIsAdmin() == null || !getPersonById(id).getIsAdmin())
+            throw new IOException("Person is not an admin");
+
         String line;
         String csvSplitBy = ",";
         pathToCsv = "C:/" + pathToCsv;
@@ -195,28 +207,64 @@ public class PersonService {
         }
     }
 
-    public void exportDataToCSV(String pathToCSV) {
-        File file = new File(pathToCSV);
-        File parentDir = file.getParentFile();
+    // path: C:\crud\data.csv
+    @Async
+    public void exportDataToCSV(Integer id, String pathToCSV) throws SQLException, IOException {
+        if (getPersonById(id).getIsAdmin() == null || !getPersonById(id).getIsAdmin())
+            throw new IOException("Person is not an admin");
 
-        if (!parentDir.exists() && !parentDir.mkdirs()) {
-            throw new RuntimeException("Nie udało się utworzyć katalogu: " + parentDir);
-        }
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("SELECT * FROM person");
+        if (!rows.isEmpty()) {
+            try (FileWriter writer = new FileWriter(pathToCSV)) {
+                // Write CSV header
+                writer.append(String.join(",", rows.get(0).keySet())).append("\n");
 
-        List<String> data = new ArrayList<>();
-        List<Person> people = findAll();
-        for (Person person : people) {
-            data.add(person.toString());
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(pathToCSV, false))) {
-            for (String line : data) {
-                writer.write(line);
-                writer.newLine();
+                // Write data
+                for (Map<String, Object> row : rows) {
+//                    System.out.println(Thread.currentThread().getId() + ": " + row.values()); sprawdzenie czy wykonują się 2 lub wiecej na raz
+//                    Thread.sleep(1000);
+                    writer.append(String.join(",", row.values().stream().map(Object::toString).toArray(String[]::new)))
+                            .append("\n");
+                }
             }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+//            catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
         }
     }
 
+    // Znajdź maksymalną długość hasła w bazie danych
+    public Integer findMaxPasswordLength() {
+        return personRepository.findMaxPasswordLength();
+    }
+
+    // Policz liczbę osób w bazie danych dla każdej płci
+    public List<Object[]> countByGender() {
+        return personRepository.countByGender();
+    }
+
+    // Oblicz średnią długość imion osób w bazie danych
+    public Double findAverageNameLength() {
+        return personRepository.findAverageNameLength();
+    }
+
+    // Zapytania nie typu CRUD
+    // Pobierz informacje o osobie razem z typem karty, ale tylko dla osób, które są administratorami
+    public List<Object[]> findAdminsWithCardType() {
+        return personRepository.findAdminsWithCardType();
+    }
+
+    // Znajdź liczbę osób w bazie danych dla każdego CardType
+    public List<Object[]> countByCardType() {
+        return personRepository.countByCardType();
+    }
+
+    // Oblicz średnią długość haseł w bazie danych
+    public Double findAveragePasswordLength() {
+        return personRepository.findAveragePasswordLength();
+    }
 }
+
+
+
+

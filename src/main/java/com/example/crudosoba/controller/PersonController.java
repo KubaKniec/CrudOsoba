@@ -2,12 +2,12 @@ package com.example.crudosoba.controller;
 
 import com.example.crudosoba.model.Person;
 import com.example.crudosoba.service.PersonService;
-import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 
@@ -23,13 +23,13 @@ public class PersonController {
     }
 
     @GetMapping("/findAll")
-    public ResponseEntity<List<Person>> findAll () {
+    public ResponseEntity<List<Person>> findAll() {
         return ResponseEntity.ok(personService.findAll());
     }
 
     @GetMapping("/login")
     public ResponseEntity<Person> login(@RequestParam String email, @RequestParam String password) {
-     return ResponseEntity.ok(personService.login(email, password));
+        return ResponseEntity.ok(personService.login(email, password));
     }
 
     @PutMapping("/logout")
@@ -53,6 +53,7 @@ public class PersonController {
     public ResponseEntity<Person> getPersonByEmail(@PathVariable("email") String email) {
         return ResponseEntity.ok(personService.getPersonByEmail(email));
     }
+
     //localhost:8081/isAdmin?id=0
     @GetMapping("/isAdmin")
     public ResponseEntity<Boolean> checkIsAdmin(@RequestParam("id") Integer id) {
@@ -84,9 +85,9 @@ public class PersonController {
     }
 
     @PostMapping("/loadData")
-    public ResponseEntity<String> loadDataFromCSV(@RequestParam("pathToCSV") String pathToCSV) {
+    public ResponseEntity<String> loadDataFromCSV(@RequestParam("id") Integer id, @RequestParam("pathToCSV") String pathToCSV) {
         try {
-            personService.loadDataFromCSV(pathToCSV);
+            personService.loadDataFromCSV(id, pathToCSV);
             return ResponseEntity.ok("Data loaded");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -94,11 +95,46 @@ public class PersonController {
     }
 
     @GetMapping("/exportData")
-    public ResponseEntity<String> exportDataToCSV(@RequestParam("pathToCSV") String pathToCSV) {
-        personService.exportDataToCSV(pathToCSV);
+    public ResponseEntity<String> exportDataToCSV(@RequestParam("id") Integer id, @RequestParam("pathToCSV") String pathToCSV) throws SQLException, IOException {
+        personService.exportDataToCSV(id, pathToCSV);
         return ResponseEntity.ok("Data exported");
     }
 
+    // Znajdź maksymalną długość hasła w bazie danych
+    @GetMapping("/findMaxPasswordLength")
+    public ResponseEntity<Integer> findMaxPasswordLength() {
+        return ResponseEntity.ok(personService.findMaxPasswordLength());
+    }
+
+    // Policz liczbę osób w bazie danych dla każdej płci
+    @GetMapping("/countByGender")
+    public ResponseEntity<List<Object[]>> countByGender() {
+        return ResponseEntity.ok(personService.countByGender());
+    }
+
+    // Oblicz średnią długość imion osób w bazie danych
+    @GetMapping("/findAverageNameLength")
+    public ResponseEntity<Double> findAverageNameLength() {
+        return ResponseEntity.ok(personService.findAverageNameLength());
+    }
+
+    // Pobierz informacje o osobie razem z typem karty, ale tylko dla osób, które są administratorami (isAdmin = true)
+    @GetMapping("/findAdminsWithCardType")
+    public ResponseEntity<List<Object[]>> findAdminsWithCardType() {
+        return ResponseEntity.ok(personService.findAdminsWithCardType());
+    }
+
+    // Znajdź liczbę osób w bazie danych dla każdego rodzaju karty (CardType)
+    @GetMapping("/countByCardType")
+    public ResponseEntity<List<Object[]>> countByCardType() {
+        return ResponseEntity.ok(personService.countByCardType());
+    }
+
+    // Oblicz średnią długość haseł w bazie danych
+    @GetMapping("/findAveragePasswordLength")
+    public ResponseEntity<Double> findAveragePasswordLength() {
+        return ResponseEntity.ok(personService.findAveragePasswordLength());
+    }
 
 
 }
