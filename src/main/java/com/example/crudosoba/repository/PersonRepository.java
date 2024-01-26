@@ -28,7 +28,7 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
     @Query("SELECT p, p.cardType FROM Person p WHERE p.isAdmin = true")
     List<Object[]> findAdminsWithCardType();
 
-    // Znajdź liczbę osób w bazie danych dla każdego rodzaju karty (CardType)
+    // Znajdź liczbę osób w bazie danych dla każdego CardTypr
     @Query("SELECT p.cardType, COUNT(p) FROM Person p GROUP BY p.cardType")
     List<Object[]> countByCardType();
 

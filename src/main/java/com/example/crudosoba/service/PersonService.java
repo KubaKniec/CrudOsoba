@@ -167,7 +167,7 @@ public class PersonService {
         }
     }
 
-    @Transactional
+//    @Transactional
     @Async
     public void loadDataFromCSV(Integer id, String pathToCsv) throws IOException {
         if (getPersonById(id).getIsAdmin() == null || !getPersonById(id).getIsAdmin())
@@ -175,7 +175,7 @@ public class PersonService {
 
         String line;
         String csvSplitBy = ",";
-        pathToCsv = "C:/" + pathToCsv;
+//        pathToCsv = "C:/" + pathToCsv;
         List<Person> persons = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(pathToCsv))) {
             br.readLine();
