@@ -1,4 +1,4 @@
-package com.example.crudosoba.ExceptionHandler.Exceptions;
+package com.example.crudosoba.exceptionHandler.CustomExceptions;
 
 public class InvalidEmailException extends RuntimeException{
     public InvalidEmailException(String message) {

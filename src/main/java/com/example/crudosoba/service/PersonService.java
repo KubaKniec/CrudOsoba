@@ -1,6 +1,6 @@
 package com.example.crudosoba.service;
 
-import com.example.crudosoba.ExceptionHandler.Exceptions.*;
+import com.example.crudosoba.exceptionHandler.CustomExceptions.*;
 import com.example.crudosoba.model.Person;
 import com.example.crudosoba.model.enums.CardType;
 import com.example.crudosoba.model.enums.Gender;

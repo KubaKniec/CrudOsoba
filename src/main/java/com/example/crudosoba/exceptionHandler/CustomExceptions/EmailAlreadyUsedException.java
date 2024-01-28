@@ -1,4 +1,4 @@
-package com.example.crudosoba.ExceptionHandler.Exceptions;
+package com.example.crudosoba.exceptionHandler.CustomExceptions;
 
 public class EmailAlreadyUsedException extends RuntimeException{
     public EmailAlreadyUsedException(String message) {

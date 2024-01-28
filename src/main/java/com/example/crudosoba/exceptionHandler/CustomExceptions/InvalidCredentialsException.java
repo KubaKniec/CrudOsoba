@@ -1,4 +1,4 @@
-package com.example.crudosoba.ExceptionHandler.Exceptions;
+package com.example.crudosoba.exceptionHandler.CustomExceptions;
 
 public class InvalidCredentialsException extends RuntimeException{
     public InvalidCredentialsException(String message) {
