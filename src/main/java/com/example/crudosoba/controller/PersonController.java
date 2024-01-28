@@ -49,7 +49,7 @@ public class PersonController {
     }
 
     // /getByEmail?
-    @GetMapping("/getByEmail")
+    @GetMapping("/getByEmail/{email}")
     public ResponseEntity<Person> getPersonByEmail(@PathVariable("email") String email) {
         return ResponseEntity.ok(personService.getPersonByEmail(email));
     }
