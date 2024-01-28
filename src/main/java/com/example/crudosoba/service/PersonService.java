@@ -5,6 +5,7 @@ import com.example.crudosoba.model.Person;
 import com.example.crudosoba.model.enums.CardType;
 import com.example.crudosoba.model.enums.Gender;
 import com.example.crudosoba.repository.PersonRepository;
+import com.fasterxml.jackson.core.JsonParseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -40,7 +41,7 @@ public class PersonService {
 
     }
 
-    public Person save(Person person) { //TODO dokończyć później nie przechodzi regex z password
+    public Person save(Person person) {
         String passwordRegex = "^(?=.*[0-9])"
                 + "(?=.*[a-z])(?=.*[A-Z])"
                 + "(?=.*[@#$%^&+=])"
@@ -139,12 +140,13 @@ public class PersonService {
             }
         }
         if (person.getGender() != null && !person.getGender().equals(personToUpdate.getGender())) {
-            try {
-                checkGenderEnumValue(String.valueOf(person.getGender()));
-                personToUpdate.setGender(person.getGender());
-            } catch (InvalidEnumValueException e) {
-                throw new InvalidEnumValueException(e.getMessage());
-            }
+
+                if (checkGenderEnumValue(String.valueOf(person.getGender()))){
+                    personToUpdate.setGender(person.getGender());
+                } else {
+                    throw new InvalidEnumValueException("Invalid Gender enum value");
+                }
+
 //                    if (checkGenderEnumValue(String.valueOf(person.getGender())))
 //                        personToUpdate.setGender(person.getGender());
         }
@@ -155,8 +157,9 @@ public class PersonService {
             try {
                 checkCardTypeEnumValue(String.valueOf(person.getCardType()));
                 personToUpdate.setCardType(person.getCardType());
-            } catch (InvalidEnumValueException e) {
+            } catch (JsonParseException e) {
                 throw new InvalidEnumValueException(e.getMessage());
+
             }
         }
 
@@ -292,25 +295,23 @@ public class PersonService {
     }
 
 
-    private void checkGenderEnumValue(String input) {
+    private boolean checkGenderEnumValue(String input) {
         List<String> genderValues = List.of(
                 String.valueOf(Gender.MALE),
                 String.valueOf(Gender.FEMALE),
                 String.valueOf(Gender.OTHER)
         );
-        if (!genderValues.contains(input.toUpperCase())) {
-            throw new InvalidEnumValueException("Input is not a Gender enum value");
-        }
+        return genderValues.contains(input.toUpperCase());
     }
 
-    private void checkCardTypeEnumValue(String input) {
+    private void checkCardTypeEnumValue(String input) throws JsonParseException {
         List<String> cardTypeValues = List.of(
                 String.valueOf(CardType.VISA),
                 String.valueOf(CardType.MASTERCARD),
                 String.valueOf(CardType.OTHER)
         );
         if (!cardTypeValues.contains(input.toUpperCase())) {
-            throw new InvalidEnumValueException("Input is not a CardType enum value");
+            throw new JsonParseException("Input is not a CardType enum value");
         }
     }
 //    private Boolean checkGenderEnumValue (String input) {

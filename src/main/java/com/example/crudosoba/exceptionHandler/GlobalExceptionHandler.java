@@ -1,14 +1,25 @@
 package com.example.crudosoba.exceptionHandler;
 
 import com.example.crudosoba.exceptionHandler.CustomExceptions.*;
+import org.springframework.boot.json.JsonParseException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        CustomMessageNotReadable jsonParseException = new CustomMessageNotReadable("Invalid Object property");
+        return buildErrorResponse(jsonParseException, HttpStatus.BAD_REQUEST, request);
+    }
 
     @ExceptionHandler(PersonNotFoundException.class)
     public ResponseEntity<Object> handlePersonNotFoundException(PersonNotFoundException ex, WebRequest request) {
@@ -63,8 +74,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleImportErrorException(ImportErrorException ex, WebRequest request) {
         return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, request);
     }
-
-
 
     private ResponseEntity<Object> buildErrorResponse(Exception ex, HttpStatus status, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(status.value(), ex.getMessage(), request.getDescription(false));
