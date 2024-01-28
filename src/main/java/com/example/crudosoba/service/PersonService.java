@@ -198,10 +198,8 @@ public class PersonService {
     public void loadDataFromCSV(Integer id, String pathToCsv) throws IOException, CSVFileNotFoundException {
         if (getPersonById(id).getIsAdmin() == null || !getPersonById(id).getIsAdmin())
             throw new NotAnAdminException("Person is not an admin");
-
         String line;
         String csvSplitBy = ",";
-
         try {
             List<Person> persons = new ArrayList<>();
             try (BufferedReader br = new BufferedReader(new FileReader(pathToCsv))) {
